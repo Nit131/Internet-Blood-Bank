@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Internet Blood Bank</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='script.js') }}" defer></script>
+</head>
+<body>
+    <div class="form-container">
+        <form action="/submit" method="POST">
+            <label for="city">City:</label>
+            <input type="text" id="city" name="city">
+            <br><br>
+
+            <label for="blood_group">Blood group:</label>
+            <select id="blood_group" name="blood_group">
+                <option value="O+ve">O+ve</option>
+                <option value="O-ve">O-ve</option>
+                <option value="A+ve">A+ve</option>
+                <option value="A-ve">A-ve</option>
+                <option value="B+ve">B+ve</option>
+                <option value="B-ve">B-ve</option>
+                <option value="AB+ve">AB+ve</option>
+                <option value="AB-ve">AB-ve</option>
+            </select>
+            <br><br>
+
+            <label for="age">Age:</label>
+            <input type="number" id="age" name="age">
+            <br><br>
+
+            <label for="gender">Gender:</label>
+            <input type="radio" id="male" name="gender" value="Male"> Male
+            <input type="radio" id="female" name="gender" value="Female"> Female
+            <br><br>
+
+            <input type="submit" value="Submit">
+        </form>
+    </div>
+
+    <div id="result-container">
+        <h2>Available Data:</h2>
+        <table id="data-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Blood Group</th>
+                    <th>City</th>
+                    <th>Phone Number</th>
+                    <th>Age</th>
+                </tr>
+            </thead>
+            <tbody id="data-table-body">
+                <!-- Data will be populated here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Safely parse the JSON data passed from Flask to JavaScript
+        const availableData = JSON.parse('{{ data | tojson | safe }}');
+
+        // Function to display the data in the table
+        function displayData(data) {
+            const tableBody = document.getElementById('data-table-body');
+            tableBody.innerHTML = '';  // Clear the existing table data
+
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${row.NAME}</td>
+                    <td>${row['Blood Group']}</td>
+                    <td>${row.City}</td>
+                    <td>${row['Phone Number']}</td>
+                    <td>${row.Age}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        // Initially display all available data when the page loads
+        displayData(availableData);
+
+        // Handle form submission and fetch filtered data
+        const form = document.querySelector('form');
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+            const response = await fetch('/submit', {
+                method: 'POST',
+                body: formData
+            });
+
+            const filteredData = await response.json();
+            displayData(filteredData);
+        });
+    </script>
+</body>
+</html>
